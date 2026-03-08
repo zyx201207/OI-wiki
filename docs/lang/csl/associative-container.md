@@ -6,14 +6,61 @@
 
 ### 插入与删除操作
 
--   `insert(x)` 当容器中没有等价元素的时候，将元素 x 插入到 `set` 中．
+-   `insert(x)`：当容器中没有等价元素的时候，将元素 x 插入到 `set` 中．
+-   `insert(hint, x)`：当容器中没有等价元素的时候，将元素 x 插入到 `set` 中，如果 x 恰好会被插入到 hint 前面，即**迭代器提示正确**，复杂度为均摊 $\mathcal{O}(1)$，否则为 $\mathcal{O}(\log n)$．
+-   `emplace(Args...)`：当容器中没有等价元素的时候，以 `Args` 作为参数原地构造元素并插入．
 -   `erase(x)` 删除值为 x 的 **所有** 元素，返回删除元素的个数．
--   `erase(pos)` 删除迭代器为 pos 的元素，要求迭代器必须合法．
+-   `erase(pos)` 删除迭代器为 pos 的元素，要求迭代器必须合法，否则是**未定义行为**，复杂度为均摊 $\mathcal{O}(1)$．
 -   `erase(first,last)` 删除迭代器在 $[first,last)$ 范围内的所有元素．
 -   `clear()` 清空 `set`．
 
 ???+ note "insert 函数的返回值"
-    insert 函数的返回值类型为 `pair<iterator, bool>`，其中 iterator 是一个指向所插入元素（或者是指向等于所插入值的原本就在容器中的元素）的迭代器，而 bool 则代表元素是否插入成功，由于 `set` 中的元素具有唯一性质，所以如果在 `set` 中已有等值元素，则插入会失败，返回 false，否则插入成功，返回 true；`map` 中的 insert 也是如此．
+    `insert` 函数的返回值类型为 `pair<iterator, bool>`，其中 iterator 是一个指向所插入元素（或者是指向等于所插入值的原本就在容器中的元素）的迭代器，而 bool 则代表元素是否插入成功，由于 `set` 中的元素具有唯一性质，所以如果在 `set` 中已有等值元素，则插入会失败，返回 false，否则插入成功，返回 true；`map` 中的 insert 也是如此．
+
+???+ note "insert 函数和 emplace 函数的区别"
+    以下面代码为例：
+
+    ```cpp
+    #include <bits/stdc++.h>
+    using namespace std;
+    
+    struct pr{
+    	int x,y;
+    
+    	pr(int a,int b){
+    		x = a,y = b;
+    		cout << "creat\n";
+    	}
+    
+    	pr(const pr &oth){
+    		x = oth.x,y = oth.y;
+    		cout << "copy\n";
+    	}
+    
+    	bool operator < (const pr &oth) const {
+    		return x < oth.x;
+    	}
+    };
+    
+    int main (){
+    	set<pr> st;
+    	cout << "insert:\n";
+    	st.insert({1,2});
+    	cout << "emplace:\n";
+    	st.emplace(1,2);
+    }
+    ```
+
+    输出为：
+    ```
+    insert:
+    creat
+    copy
+    emplace:
+    creat
+    ```
+
+    `insert` 此时需要先将 `{1,2}` 变成一个临时对象，然后复制构造，而 `emplace` 会直接原地构造，这也是 `emplace` 存在的意义——这种情况下它比 `insert` 少一次复制构造. 
 
 ### 迭代器
 
@@ -42,7 +89,7 @@
 ???+ warning "`lower_bound` 和 `upper_bound` 的时间复杂度"
     `set` 自带的 `lower_bound` 和 `upper_bound` 的时间复杂度为 $O(\log n)$．
     
-    但使用 `algorithm` 库中的 `lower_bound` 和 `upper_bound` 函数对 `set` 中的元素进行查询，时间复杂度为 $O(n)$．
+    但使用 `algorithm` 库中的 `lower_bound` 和 `upper_bound` 函数对 `set` 中的元素进行查询时，由于 `set` 的迭代器不支持随机访问，时间复杂度会退化为 $O(n)$．
 
 ???+ warning "`nth_element` 的时间复杂度"
     `set` 没有提供自带的 `nth_element`．使用 `algorithm` 库中的 `nth_element` 查找第 $k$ 大的元素时间复杂度为 $O(n)$．
@@ -182,3 +229,7 @@ set<int, cmp> s;
 ```
 
 对于其他关联式容器，可以用类似的方式实现自定义比较，这里不再赘述．
+
+## 注意！
+
+`set` 和 `map` 内部实现为平衡树，常数巨大！
