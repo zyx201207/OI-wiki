@@ -139,7 +139,14 @@ AVL 树的其他操作（Predecessor、Successor、Select、Rank 等）与普通
 
 ## 参考代码
 
-下面的代码是用 AVL 树实现的 `Map`，即有序不可重映射：
+下面是 AVL 树做[洛谷-P3369 【模板】普通平衡树](https://www.luogu.com.cn/problem/P3369)完整的代码：
+
+??? note "参考代码"
+    ```cpp
+    --8<-- "docs/ds/code/avl-tree/avl_tree_release.hpp"
+    ```
+
+下面的代码是用 AVL 树实现的 `Map`，即有序不可重映射（这是一个高度工业化的实现）：
 
 ??? note "参考代码"
     ```cpp
