@@ -29,16 +29,20 @@
 
 同一程序使用相同的 `seed` 两次运行，在同一机器、同一编译器下，随机出的结果将会是相同的．
 
-有一个选择是使用当前系统时间来作为随机种子：`srand(time(nullptr))`．
+有一个选择是使用当前系统时间来作为随机种子：`srand(time(nullptr))`，注意由于 `time(nullptr)` 是秒级时间戳，同一秒内多次运行仍然会产生相同的结果，解决方式是 `srand(chrono::steady_clock::now().time_since_epoch().count() & INT_MAX)` 以更精确的时间戳播种. 
 
 ??? warning "Warning"
-    在 `Windows` 系统下 `rand()` 返回值的取值范围为 $\left[0,2^{15}\right)$（即 `RAND_MAX` 等于 $2^{15}-1$），当需要生成的数不小于 $2^{15}$ 时建议使用 `(rand() << 15 | rand())` 来生成更大的随机数．
+    在 `Windows` 系统下 `rand()` 返回值的取值范围为 $\left[0,2^{15}\right)$（即 `RAND_MAX` 等于 $2^{15}-1$），当需要生成的数不小于 $2^{15}$ 时建议使用 `(rand() << 15 ^ rand())` 来生成更大的随机数．
 
 关于 `rand()` 和 `rand()%n` 的随机性：
 
 -   C/C++ 标准并未关于 `rand()` 所生成随机数的任何方面的质量做任何规定．
 -   GCC 编译器对 `rand()` 所采用的实现方式，保证了分布的均匀性等基本性质，但具有 低位周期长度短 等明显缺陷．（例如在笔者的机器上，`rand()%2` 所生成的序列的周期长约 $2\cdot 10^6$）
 -   即使假设 `rand()` 是均匀随机的，`rand()%n` 也不能保证均匀性，因为 `[0,n)` 中的每个数在 `0%n,1%n,...,RAND_MAX%n` 中的出现次数可能不相同．
+
+事实上，如果每次只生成一个随机数，则，如果 $RAND_MAX+1$ 不是 $n$ 的倍数，则**不可能均匀**，因为取值集合 $\{x \in \mathbb{Z}|0 \leq x \leq RAND_MAX+1\}$ 无法均匀映射到 $\{x \in \mathbb{Z}|0 \leq x \lt n\}$. 
+
+[cppreference.com](https://zh.cppreference.com/%E9%A6%96%E9%A1%B5) 在多个页面，比如 [`random_shuffle`](https://zh.cppreference.com/cpp/algorithm/random_shuffle) 和 [`rand`](https://zh.cppreference.com/cpp/numeric/random/rand) 都明确反对 `rand`，且 `rand` 在很多场景下确实表现出了明显的缺陷（虽然在竞赛中体现不明显），故不推荐使用 `rand` 生成随机数，更推荐 `mt19937`. 
 
 ### 预定义随机数生成器
 
